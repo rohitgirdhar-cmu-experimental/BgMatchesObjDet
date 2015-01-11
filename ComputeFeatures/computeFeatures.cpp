@@ -4,12 +4,17 @@
  */
 
 #include <memory>
+#include <fstream>
 #include <opencv2/opencv.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp> // for to_lower
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include "caffe/caffe.hpp"
 #include "utils.hpp"
+
+#define FEAT_DIR fs::path("selsearch_feats")
 
 using namespace std;
 using namespace caffe;
@@ -21,6 +26,8 @@ template<typename Dtype>
 void read2DMatrixTxt(const fs::path&, vector<vector<Dtype>>&);
 void sliceBoxes(const Mat&, const vector<vector<float>>&, vector<Mat>&);
 void storeImages(const vector<Mat>&, const fs::path&);
+template<typename Dtype>
+void dumpFeats(const fs::path&, const vector<vector<Dtype>>&);
 
 int main(int argc, char *argv[]) {
     #ifdef CPU_ONLY
@@ -85,19 +92,32 @@ int main(int argc, char *argv[]) {
 
     ifstream infile(IMGSLIST.c_str());
     string fname;
-    int i = 1;
+    int i = 0;
+
+    // Compute features
+    fs::create_directories(TEMPDIR / FEAT_DIR);
     while (infile >> fname) {
+        i++;
         Mat I = imread((IMGSDIR / fs::path(fname)).string());
         vector<vector<float>> boxes;
         read2DMatrixTxt<float>((TEMPDIR / fs::path("selsearch_boxes") /
                     fs::path(to_string(i) + ".txt")), boxes);
         vector<Mat> slices;
         sliceBoxes(I, boxes, slices);
+        transform(slices.begin(), slices.end(), slices.begin(),
+                [](Mat I) -> Mat {
+                    resize(I, I, Size(256, 256));
+                    return I;
+                });
         if (DEBUG) {
+            LOG(INFO) << "DEBUG is set. Storing image slices";
             storeImages(slices, TEMPDIR / fs::path(string("slices_dump")) /
                     fs::path(to_string(i)));
         }
-        i++;
+        vector<vector<float>> feats;
+        computeFeatures<float>(caffe_test_net, slices, LAYER, BATCH_SIZE, feats);
+        dumpFeats<float>(TEMPDIR / FEAT_DIR / 
+                fs::path(to_string(i) + ".dat"), feats);
     }
     infile.close();
 
@@ -122,8 +142,6 @@ int main(int argc, char *argv[]) {
         Is.push_back(I);
     }
     LOG(INFO) << "read images";
-    vector<vector<float>> output;
-    computeFeatures<float>(caffe_test_net, Is, LAYER, BATCH_SIZE, output);
 
     // Dump output
     for (int i = 0; i < imgs.size(); i++) {
@@ -170,5 +188,12 @@ void storeImages(const vector<Mat>& imgs, const fs::path& dpath) {
     for (int i = 0; i < imgs.size(); i++) {
         imwrite((dpath / fs::path(to_string(i) + ".jpg")).string(), imgs[i]);
     }
+}
+
+template<typename Dtype>
+void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
+    ofstream of(fpath.string(), ios::binary);
+    boost::archive::binary_oarchive ar(of);
+    ar & feats;
 }
 
