@@ -3,6 +3,8 @@
 
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include "caffe/caffe.hpp"
 
 using namespace std;
@@ -65,6 +67,18 @@ void genImgsList(const fs::path& imgsDir, vector<fs::path>& list) {
         ++it;
     }
     LOG(INFO) << "Found " << list.size() << " image file(s) in " << imgsDir;
+}
+
+template<typename Dtype>
+void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
+    ofstream of(fpath.string(), ios::binary);
+    boost::archive::binary_oarchive ar(of);
+    ar & feats;
+    // compress file, and delete this one
+    string cmd = string("tar zcvpf ") + fpath.string() + ".tar.gz" + " " + fpath.string();
+    system(cmd.c_str());
+    cmd = string("rm ") + fpath.string();
+    system(cmd.c_str());
 }
 
 #endif

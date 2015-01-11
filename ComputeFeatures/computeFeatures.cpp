@@ -9,8 +9,6 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp> // for to_lower
-#include <boost/serialization/vector.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include "caffe/caffe.hpp"
 #include "utils.hpp"
 
@@ -26,8 +24,6 @@ template<typename Dtype>
 void read2DMatrixTxt(const fs::path&, vector<vector<Dtype>>&);
 void sliceBoxes(const Mat&, const vector<vector<float>>&, vector<Mat>&);
 void storeImages(const vector<Mat>&, const fs::path&);
-template<typename Dtype>
-void dumpFeats(const fs::path&, const vector<vector<Dtype>>&);
 
 int main(int argc, char *argv[]) {
     #ifdef CPU_ONLY
@@ -118,37 +114,9 @@ int main(int argc, char *argv[]) {
         computeFeatures<float>(caffe_test_net, slices, LAYER, BATCH_SIZE, feats);
         dumpFeats<float>(TEMPDIR / FEAT_DIR / 
                 fs::path(to_string(i) + ".dat"), feats);
+        LOG(INFO) << "Done for image " << i;
     }
     infile.close();
-
-    return 0;
-
-    // Get list of images in directory
-    vector<fs::path> imgs;
-    genImgsList(IMGSDIR, imgs);
-
-    // Create output directory
-    fs::path FEAT_OUTDIR = OUTDIR / fs::path(LAYER.c_str());
-    fs::create_directories(FEAT_OUTDIR);
-
-    vector<Mat> Is;
-    for (auto imgpath : imgs) {
-        Mat I = imread((IMGSDIR / imgpath).string());
-        if (!I.data) {
-            LOG(ERROR) << "Unable to read image " << imgpath;
-            return -1;
-        }
-        resize(I, I, Size(256, 256));
-        Is.push_back(I);
-    }
-    LOG(INFO) << "read images";
-
-    // Dump output
-    for (int i = 0; i < imgs.size(); i++) {
-        fs::path imgpath = imgs[i];
-        fs::path outFile = fs::change_extension(FEAT_OUTDIR / imgpath, ".txt");
-        fs::create_directories(outFile.parent_path());
-    }
 
     return 0;
 }
@@ -188,12 +156,5 @@ void storeImages(const vector<Mat>& imgs, const fs::path& dpath) {
     for (int i = 0; i < imgs.size(); i++) {
         imwrite((dpath / fs::path(to_string(i) + ".jpg")).string(), imgs[i]);
     }
-}
-
-template<typename Dtype>
-void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
-    ofstream of(fpath.string(), ios::binary);
-    boost::archive::binary_oarchive ar(of);
-    ar & feats;
 }
 
