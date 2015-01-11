@@ -43,7 +43,7 @@ void computeFeatures(Net<Dtype>& caffe_test_net,
             Dtype* feat_data = feat->mutable_cpu_data() + feat->offset(i);
             output.push_back(vector<Dtype>(feat_data, feat_data + feat->count() / feat->num()));
         }
-        LOG(INFO) << "Batch " << batch << " (" << actBatchSize << " images) done";
+        LOG(INFO) << "Batch " << batch << "/" << nBatches << " (" << actBatchSize << " images) done";
     }
 }
 
