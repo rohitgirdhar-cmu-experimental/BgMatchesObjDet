@@ -12,8 +12,6 @@
 #include "caffe/caffe.hpp"
 #include "utils.hpp"
 
-#define FEAT_DIR fs::path("selsearch_feats")
-
 using namespace std;
 using namespace caffe;
 using namespace cv;
@@ -51,6 +49,8 @@ int main(int argc, char *argv[]) {
          "File with list of images in imgsdir")
         ("tempdir,t", po::value<string>()->required(),
          "Path to where tempdata is stored, like selective search output")
+        ("boxprefix,b", po::value<string>()->default_value("selsearch"),
+         "Prefix of the folder containing boxes, could be selsearch, marked")
         ("debug,d", po::bool_switch()->default_value(false),
          "Set debug, store image slices etc")
     ;
@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     fs::path IMGSDIR = fs::path(vm["imgsdir"].as<string>());
     fs::path IMGSLIST = fs::path(vm["imgslist"].as<string>());
     fs::path TEMPDIR = fs::path(vm["tempdir"].as<string>());
+    string BOXPREFIX = vm["boxprefix"].as<string>();
     bool DEBUG = vm["debug"].as<bool>();
 
     NetParameter test_net_params;
@@ -91,12 +92,13 @@ int main(int argc, char *argv[]) {
     int i = 0;
 
     // Compute features
+    fs::path FEAT_DIR = fs::path(BOXPREFIX + "_feats");
     fs::create_directories(TEMPDIR / FEAT_DIR);
     while (infile >> fname) {
         i++;
         Mat I = imread((IMGSDIR / fs::path(fname)).string());
         vector<vector<float>> boxes;
-        read2DMatrixTxt<float>((TEMPDIR / fs::path("selsearch_boxes") /
+        read2DMatrixTxt<float>((TEMPDIR / fs::path(BOXPREFIX + "_boxes") /
                     fs::path(to_string(i) + ".txt")), boxes);
         vector<Mat> slices;
         sliceBoxes(I, boxes, slices);
