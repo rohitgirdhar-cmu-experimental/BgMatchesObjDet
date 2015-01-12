@@ -18,7 +18,7 @@ endif
 
 all: $(patsubst %.cpp, %.bin, $(wildcard *.cpp))
 
-%.bin: %.cpp Makefile
+%.bin: %.cpp Makefile utils.hpp
 	$(CXX) -std=c++0x \
         $(INC) \
 		$(CPPFLAGS) \

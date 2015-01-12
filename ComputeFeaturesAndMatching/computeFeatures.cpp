@@ -24,6 +24,7 @@ void sliceBoxes(const Mat&, const vector<vector<float>>&, vector<Mat>&);
 void storeImages(const vector<Mat>&, const fs::path&);
 
 int main(int argc, char *argv[]) {
+    google::InitGoogleLogging(argv[0]);
     #ifdef CPU_ONLY
     Caffe::set_mode(Caffe::CPU);
     LOG(INFO) << "Extracting Features in CPU mode";

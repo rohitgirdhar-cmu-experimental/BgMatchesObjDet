@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include "caffe/caffe.hpp"
 
 using namespace std;
@@ -73,12 +74,69 @@ template<typename Dtype>
 void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
     ofstream of(fpath.string(), ios::binary);
     boost::archive::binary_oarchive ar(of);
-    ar & feats;
+    ar << feats;
     // compress file, and delete this one
-    string cmd = string("tar zcvpf ") + fpath.string() + ".tar.gz" + " " + fpath.string();
+    fs::path dpath = fpath.parent_path();
+    fs::path fname = fpath.filename();
+    string cmd = string("cd ") + dpath.string() + "; " + 
+        string("tar zcvpf ") + fname.string() + ".tar.gz " + fname.string() + "; " +
+        string("rm ") + fname.string();
     system(cmd.c_str());
+}
+
+template<typename Dtype>
+void loadFeats(const fs::path& fpath, vector<vector<Dtype>>& feats) {
+    // decompress file, read and delete decompressed version
+    fs::path dpath = fpath.parent_path();
+    fs::path fname = fpath.filename();
+
+    string cmd = string("cd ") + dpath.string() + "; " + 
+        string("tar xzf ") + fname.string() + ".tar.gz";
+    system(cmd.c_str());
+    ifstream ifs(fpath.string(), ios::binary);
+    boost::archive::binary_iarchive ar(ifs);
+    ar >> feats;
     cmd = string("rm ") + fpath.string();
     system(cmd.c_str());
+}
+
+template<typename Dtype>
+void readList(const fs::path& fpath, vector<Dtype>& lst) {
+    lst.clear();
+    ifstream ifs(fpath.string());
+    Dtype el;
+    while (ifs >> el) {
+        lst.push_back(el);
+    }
+    ifs.close();
+}
+
+template<typename Dtype>
+void writeList(const fs::path& fpath, const vector<Dtype>& lst) {
+    ofstream ofs(fpath.string());
+    for (int i = 0; i < lst.size(); i++) {
+        ofs << lst[i] << endl;
+    }
+    ofs.close();
+}
+
+float norm_l2(const vector<float>& a) {
+    float sqnorm = 0;
+    for (int i = 0; i < a.size(); i++) {
+        sqnorm += a[i] * a[i];
+    }
+    return sqrt(sqnorm);
+}
+
+float cosine_distance(const vector<float>& a, const vector<float>& b) {
+    CHECK_EQ(a.size(), b.size());
+    float sim = 0;
+    for (int i = 0; i < a.size(); i++) {
+        sim += a[i] * b[i];
+    }
+    sim = sim / norm_l2(a);
+    sim = sim / norm_l2(b);
+    return 1 - sim;
 }
 
 #endif
