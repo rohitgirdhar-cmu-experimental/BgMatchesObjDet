@@ -4,12 +4,13 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp> // for to_lower
 #include "utils.hpp"
+#include "lock.hpp"
 
 using namespace std;
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
-void computeDistances(int, const vector<fs::path>&, vector<float>&);
+void computeDistances(int, const vector<fs::path>&, vector<float>&, vector<int>&);
 
 int main(int argc, char *argv[]) {
     google::InitGoogleLogging(argv[0]);
@@ -38,17 +39,25 @@ int main(int argc, char *argv[]) {
 
     vector<fs::path> imgs;
     readList<fs::path>(fs::path("../dataset/PeopleAtLandmarks/ImgsList.txt"), imgs);
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 50; i++) {
+        if (!lock("../tempdata/dists/" + to_string(i) + ".txt")) {
+            LOG(ERROR) << "Already done for " << i;
+            continue;
+        }
         vector<float> dists;
-        computeDistances(i, imgs, dists);
+        vector<int> bboxes;
+        computeDistances(i, imgs, dists, bboxes);
         writeList<float>(string("../tempdata/dists/") + to_string(i) + ".txt", dists);
+        writeList<int>(string("../tempdata/dists/") + to_string(i) + "_posn.txt", bboxes);
         LOG(INFO) << "Done for " << i;
+        unlock("../tempdata/dists/" + to_string(i) + ".txt");
     }
 
     return 0;
 }
 
-void computeDistances(int idx, const vector<fs::path>& imgslist, vector<float>& dists) {
+void computeDistances(int idx, const vector<fs::path>& imgslist, 
+        vector<float>& dists, vector<int>& bboxes) {
     vector<vector<float>> query_feats;
     loadFeats("../tempdata/marked_feats/" + to_string(idx) + ".dat", query_feats);
     // currently only supporting one feature in query
@@ -60,7 +69,9 @@ void computeDistances(int idx, const vector<fs::path>& imgslist, vector<float>& 
         for (int j = 0; j < test_feats.size(); j++) {
             test_dists.push_back(cosine_distance(query_feats[0], test_feats[j]));
         }
-        dists.push_back(*min_element(test_dists.begin(), test_dists.end()));
+        auto min_elt = min_element(test_dists.begin(), test_dists.end());
+        dists.push_back(*min_elt);
+        bboxes.push_back(distance(test_dists.begin(), min_elt));
     }
 }
 
