@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
 
 void computeDistances(int idx, const vector<fs::path>& imgslist, 
         vector<float>& dists, vector<int>& bboxes) {
+    dists.clear(); bboxes.clear();
     vector<vector<float>> query_feats;
     loadFeats("../tempdata/marked_feats/" + to_string(idx) + ".dat", query_feats);
     // currently only supporting one feature in query
@@ -66,12 +67,17 @@ void computeDistances(int idx, const vector<fs::path>& imgslist,
         vector<vector<float>> test_feats;
         loadFeats("../tempdata/selsearch_feats/" + to_string(i) + ".dat", test_feats);
         vector<float> test_dists;
+        float min_cos_dist = 1.0;
+        int min_cos_dist_pos = 0;
         for (int j = 0; j < test_feats.size(); j++) {
-            test_dists.push_back(cosine_distance(query_feats[0], test_feats[j]));
+            float d = cosine_distance(query_feats[0], test_feats[j]);
+            if (min_cos_dist > d) {
+                min_cos_dist = d;
+                min_cos_dist_pos = j; // change to j+1, since 1 index is conven
+            }
         }
-        auto min_elt = min_element(test_dists.begin(), test_dists.end());
-        dists.push_back(*min_elt);
-        bboxes.push_back(distance(test_dists.begin(), min_elt));
+        dists.push_back(min_cos_dist);
+        bboxes.push_back(min_cos_dist_pos);
     }
 }
 
