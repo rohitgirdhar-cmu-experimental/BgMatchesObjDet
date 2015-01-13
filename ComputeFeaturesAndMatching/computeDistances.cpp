@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
     if (vm.count("help")) {
-        LOG(INFO) << desc;
+        LOG(ERROR) << desc;
         return -1;
     }
     try {
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     vector<fs::path> imgs;
     readList<fs::path>(fs::path("../dataset/PeopleAtLandmarks/ImgsList.txt"), imgs);
-    for (int i = 1; i <= 50; i++) {
+    for (int i = 1; i <= 237; i++) {
         if (!lock("../tempdata/dists/" + to_string(i) + ".txt")) {
             LOG(ERROR) << "Already done for " << i;
             continue;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
         computeDistances(i, imgs, dists, bboxes);
         writeList<float>(string("../tempdata/dists/") + to_string(i) + ".txt", dists);
         writeList<int>(string("../tempdata/dists/") + to_string(i) + "_posn.txt", bboxes);
-        LOG(INFO) << "Done for " << i;
+        LOG(ERROR) << "Done for " << i;
         unlock("../tempdata/dists/" + to_string(i) + ".txt");
     }
 

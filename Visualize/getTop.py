@@ -3,7 +3,7 @@ import numpy as np
 outputdir = "../tempdata/tops/"
 
 def main():
-    for i in range(1, 50):
+    for i in range(1, 237 + 1):
         fpath = "../tempdata/dists/" + str(i) + ".txt"
         f = open(fpath)
         scores = f.read().splitlines()
