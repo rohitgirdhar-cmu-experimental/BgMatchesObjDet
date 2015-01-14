@@ -19,6 +19,7 @@ def main():
             box = fid.readline().strip().split(',')
         qbox = [int(float(el)) for el in box]
         cv2.rectangle(I, (qbox[1], qbox[0]), (qbox[3], qbox[2]), (0,255,0), 3)
+        I = cv2.resize(I, (256, np.shape(I)[0] * 256 / np.shape(I)[1]))
         cv2.imwrite(out_dpath + "q.jpg", I)
 
         topimgs, bboxes = readTopList("../tempdata/tops/" + str(i) + ".txt")
@@ -32,6 +33,7 @@ def main():
             # bbox are in sel search format 
             cv2.rectangle(J, (int(bboxes[j][1]), int(bboxes[j][0])), 
                     (int(bboxes[j][3]), int(bboxes[j][2])), (0,0,255), 3)
+            J = cv2.resize(J, (256, np.shape(J)[0] * 256 / np.shape(J)[1]))
             cv2.imwrite(out_dpath + str(j) + ".jpg", J)
 
             if qcls == tcls:
