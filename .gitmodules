@@ -1,0 +1,3 @@
+[submodule "ComputeFeaturesAndMatching/hashing/SparseLSH"]
+	path = ComputeFeaturesAndMatching/hashing/SparseLSH
+	url = git@github.com:rohitgirdhar-cmu-experimental/SparseLSH.git
