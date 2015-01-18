@@ -13,6 +13,9 @@ using namespace caffe;
 using namespace cv;
 namespace fs = boost::filesystem;
 
+// Output file style
+#define DUMP_TXT 1
+#define DUMP_BIN 2
 
 template<typename Dtype>
 void computeFeatures(Net<Dtype>& caffe_test_net,
@@ -71,10 +74,29 @@ void genImgsList(const fs::path& imgsDir, vector<fs::path>& list) {
 }
 
 template<typename Dtype>
-void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
-    ofstream of(fpath.string(), ios::binary);
-    boost::archive::binary_oarchive ar(of);
-    ar << feats;
+void dumpFeatsTxt(const fs::path& fpath, const vector<vector<Dtype>>& feats) {
+    ofstream ofs(fpath.string());
+    for (int i = 0; i < feats.size(); i++) {
+        for (int j = 0; j < feats[i].size(); j++) {
+            ofs << feats[i][j] << " ";
+        }
+        ofs << endl;
+    }
+    ofs.close();
+}
+
+template<typename Dtype>
+void dumpFeats(const fs::path& fpath, const vector<vector<Dtype>>& feats,
+        int type = DUMP_BIN) {
+    if (type == DUMP_BIN) {
+        ofstream of(fpath.string(), ios::binary);
+        boost::archive::binary_oarchive ar(of);
+        ar << feats;
+        of.close();
+    } else {
+        // DUMP_TXT
+        dumpFeatsTxt<Dtype>(fpath, feats);
+    }
     // compress file, and delete this one
     fs::path dpath = fpath.parent_path();
     fs::path fname = fpath.filename();
