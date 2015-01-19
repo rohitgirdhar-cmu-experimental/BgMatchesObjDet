@@ -1,10 +1,14 @@
 import numpy as np
+import os
 
-outputdir = "../tempdata/tops/"
+inputdir = '../tempdata/dists_hash'
+outputdir = '../tempdata/tops_hash/'
+boxesdir = '../tempdata/selsearch_boxes/'
+## Expects _posn files to be 0 indexed
 
 def main():
     for i in range(1, 237 + 1):
-        fpath = "../tempdata/dists/" + str(i) + ".txt"
+        fpath = os.path.join(inputdir, str(i) + '.txt')
         f = open(fpath)
         scores = f.read().splitlines()
         f.close()
@@ -12,11 +16,13 @@ def main():
         scores = np.array(scores)
         order = np.argsort(scores)
         scores = scores[order]
-        bboxes = readBboxes("../tempdata/dists/" + str(i) + "_posn.txt", "../tempdata/selsearch_boxes/")
+        bboxes = readBboxes(os.path.join(inputdir, str(i) + "_posn.txt"), boxesdir)
         bboxes = bboxes[order]
 
         fout = open(outputdir + str(i) + ".txt", 'w')
         for j in range(20):
+            if scores[j] >= 1.0: # no point after that
+                continue
             fout.write('%d %f %f %f %f\n' % (order[j] + 1, bboxes[j][0], bboxes[j][1], bboxes[j][2], bboxes[j][3]))
 
 

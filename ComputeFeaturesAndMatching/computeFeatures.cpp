@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         vector<vector<float>> feats;
         computeFeatures<float>(caffe_test_net, slices, LAYER, BATCH_SIZE, feats);
         dumpFeats<float>(TEMPDIR / FEAT_DIR / 
-                fs::path(to_string(i) + ".dat"), feats);
+                fs::path(to_string(i) + ".dat"), feats, DUMP_TXT);
         LOG(INFO) << "Done for image " << i;
     }
     infile.close();

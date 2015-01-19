@@ -6,7 +6,8 @@ import cv2
 import numpy as np
 
 imgsdir = "../dataset/PeopleAtLandmarks/corpus/"
-outimgspath = "../tempdata/tops_vis/"
+topsdir = '../tempdata/tops_hash'
+outimgspath = "../tempdata/tops_hash_vis/"
 
 def main():
     with open("../dataset/PeopleAtLandmarks/ImgsList.txt") as f:
@@ -22,7 +23,7 @@ def main():
         I = cv2.resize(I, (256, np.shape(I)[0] * 256 / np.shape(I)[1]))
         cv2.imwrite(out_dpath + "q.jpg", I)
 
-        topimgs, bboxes = readTopList("../tempdata/tops/" + str(i) + ".txt")
+        topimgs, bboxes = readTopList(os.path.join(topsdir, str(i) + ".txt"))
         j = 0
         hitornot = []
         if not os.path.exists(out_dpath):
