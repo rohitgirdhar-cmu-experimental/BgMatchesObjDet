@@ -20,7 +20,7 @@ def main():
         bboxes = bboxes[order]
 
         fout = open(outputdir + str(i) + ".txt", 'w')
-        for j in range(20):
+        for j in range(100):
             if scores[j] >= 1.0: # no point after that
                 continue
             fout.write('%d %f %f %f %f\n' % (order[j] + 1, bboxes[j][0], bboxes[j][1], bboxes[j][2], bboxes[j][3]))

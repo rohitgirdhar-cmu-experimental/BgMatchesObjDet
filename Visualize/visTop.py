@@ -13,7 +13,10 @@ def main():
     with open("../dataset/PeopleAtLandmarks/ImgsList.txt") as f:
         lst = f.read().splitlines()
     for i in range(1, 237 + 1):
-        out_dpath = outimgspath + str(i) + "/"
+        out_dpath = os.path.join(outimgspath, str(i) + '/')
+        if not os.path.exists(out_dpath):
+            os.makedirs(out_dpath)
+
         I = cv2.imread(imgsdir + lst[i - 1])
         qcls = getClass(lst[i - 1])
         with open("../tempdata/marked_boxes/" + str(i) + ".txt") as fid:
@@ -26,8 +29,6 @@ def main():
         topimgs, bboxes = readTopList(os.path.join(topsdir, str(i) + ".txt"))
         j = 0
         hitornot = []
-        if not os.path.exists(out_dpath):
-            os.makedirs(out_dpath)
         for topimg in topimgs:
             J = cv2.imread(imgsdir + lst[topimg - 1])
             tcls = getClass(lst[topimg - 1])

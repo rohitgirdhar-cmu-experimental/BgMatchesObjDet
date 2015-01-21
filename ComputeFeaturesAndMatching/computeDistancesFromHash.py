@@ -10,7 +10,7 @@ HASHDIR = os.path.join(TEMPDATA, 'selsearch_feats_hash')
 OUTDIR = os.path.join(TEMPDATA, 'dists_hash')
 
 def main():
-    lsh = LSH(10, 9216, storage_config={'leveldb':{'db': os.path.join(HASHDIR, 'ldb')}},
+    lsh = LSH(16, 9216, storage_config={'leveldb':{'db': os.path.join(HASHDIR, 'ldb')}},
             matrices_filename=os.path.join(HASHDIR, 'rand_planes.npz'))
     for i in range(1, 237 + 1):
         feats = readFeats(os.path.join(TEMPDATA, 'marked_feats', str(i) + '.dat'))
@@ -21,6 +21,11 @@ def main():
         for el in matches:
             dists[el[0] - 1] = 0
             bbox_id[el[0] - 1] = el[1]
+#            feats2 = readFeats(os.path.join(TEMPDATA, 'selsearch_feats', str(el[0]) + '.dat'))
+#            f2 = feats2.getrow(el[1])
+#            import pdb
+#            pdb.set_trace()
+#            print f2.dot(feats.getrow(0))
         np.savetxt(os.path.join(OUTDIR, str(i) + '.txt'), dists, '%f', delimiter='\n')
         np.savetxt(os.path.join(OUTDIR, str(i) + '_posn.txt'), bbox_id, '%d', delimiter='\n')
 

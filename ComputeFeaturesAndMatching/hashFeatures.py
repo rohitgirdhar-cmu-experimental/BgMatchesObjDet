@@ -14,7 +14,7 @@ except:
     pass
 
 def main():
-    lsh = LSH(10, 9216, storage_config={'leveldb':{'db': os.path.join(HASHDIR, 'ldb')}},
+    lsh = LSH(16, 9216, storage_config={'leveldb':{'db': os.path.join(HASHDIR, 'ldb')}},
             matrices_filename=os.path.join(HASHDIR, 'rand_planes.npz'))
     for i in range(1, 237 + 1):
         stime = time.time()
