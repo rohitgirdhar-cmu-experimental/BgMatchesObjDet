@@ -1,6 +1,16 @@
 function compute_boxes(imgsDir, imgsList, outdir)
 % Compute the selective search boxes for each image in the dpath and store into a txt
 
+ST = 4572;
+random_select_n = 500; % set this to -1 if you want all the boxes
+                       % else this will randomly select as many
+                       % boxes
+if random_select_n ~= -1
+  fprintf('WARNING:: RANDOMLY SAMPLING %d BOXES!!!!!\n', random_select_n)
+  fprintf('WARNING:: RANDOMLY SAMPLING %d BOXES!!!!!\n', random_select_n)
+  fprintf('WARNING:: RANDOMLY SAMPLING %d BOXES!!!!!\n', random_select_n)
+end
+
 addpath(genpath('SelectiveSearchCodeIJCV'));
 
 fid = fopen(imgsList);
@@ -13,10 +23,10 @@ if ~exist(outdir, 'dir')
 end
 
 try
-    matlabpool open 16;
+    matlabpool open 24;
 catch
 end
-parfor i = 1 : numel(lst)
+parfor i = ST : numel(lst)
     outpath = fullfile(outdir, [num2str(i) '.txt']);
     lockpath = [outpath '.lock'];
 
@@ -37,6 +47,12 @@ parfor i = 1 : numel(lst)
           continue;
       end
       boxes2(end+1, :) = boxes(j, :);
+    end
+
+    if random_select_n ~= -1
+      sel_n = min(random_select_n, size(boxes2, 1));
+      sel = randperm(size(boxes2, 1), sel_n);
+      boxes2 = boxes2(sel, :);
     end
 
     saveBoxes(boxes2, outpath);
