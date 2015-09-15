@@ -1,8 +1,8 @@
 function compute_boxes(imgsDir, imgsList, outdir)
 % Compute the selective search boxes for each image in the dpath and store into a txt
 
-ST = 4572;
-random_select_n = 500; % set this to -1 if you want all the boxes
+ST = 1;
+random_select_n = -1; % set this to -1 if you want all the boxes
                        % else this will randomly select as many
                        % boxes
 if random_select_n ~= -1
@@ -23,7 +23,7 @@ if ~exist(outdir, 'dir')
 end
 
 try
-    matlabpool open 24;
+    matlabpool open 12;
 catch
 end
 parfor i = ST : numel(lst)
@@ -37,13 +37,13 @@ parfor i = ST : numel(lst)
 
     impath_str = lst{i};
     I = imread(fullfile(imgsDir, impath_str));
-    boxes = selective_search_boxes(I, true, 480);
+    boxes = selective_search_boxes(I, true, 256);
 
     % remove too small boxes
     boxes2 = zeros(0, 4);
     for j = 1 : size(boxes, 1)
-      if (boxes(j, 3) - boxes(j, 1)) < 25 || ...
-          (boxes(j, 4) - boxes(j, 2)) < 25
+      if (boxes(j, 3) - boxes(j, 1)) < 40 || ...
+          (boxes(j, 4) - boxes(j, 2)) < 40
           continue;
       end
       boxes2(end+1, :) = boxes(j, :);
